@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "00-basic"
+		},
+		{
+			"path": "01-blockchain"
+		}
+	],
+	"settings": {}
+}
