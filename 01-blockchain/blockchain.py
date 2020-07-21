@@ -9,16 +9,40 @@ genesis_block = {
 blockchain = [genesis_block]
 open_transactions = []
 owner = 'Hoang'
+
+# Set of senders, recipients participated in transactions
 participants = set([owner])
 
 
-def hash_block(last_block):
-    """ Hash the given :last_block: and return that hash value.
+def hash_block(block):
+    """ Hash the given :block: and return that hash value.
 
     Arguments:
-        :last_block: the block to be hashed
+        :block: the block to be hashed
     """
-    return '-'.join([str(last_block[key]) for key in last_block])
+    return '-'.join([str(block[key]) for key in block])
+
+
+def get_balance(participant):
+    """ Calculate the current account balance the :participant: has.
+
+    Returns: the result of substracting the total amount sent from the total amount received.
+    """
+    # Amounts sent in the past (already mined and put in blockchain blocks)
+    tx_sender = [[tx['amount'] for tx in block['transactions']
+                  if tx['sender'] == participant] for block in blockchain]
+    # Amounts will be sent in the future (saved in the open_transactions)
+    open_tx_sender = [tx['amount']
+                      for tx in open_transactions if tx['sender'] == participant]
+    tx_sender.append(open_tx_sender)
+    # Amounts received in the past (already finalized and put in blockchain blocks)
+    tx_recipient = [[tx['amount'] for tx in block['transactions']
+                     if tx['recipient'] == participant] for block in blockchain]
+    # Note that amounts from MINING_REWARD will only be available when a mining is done
+
+    # Calculate the balance by flattening the 2 lists of lists,
+    # then sum up elements in the flatten lists
+    return sum([el for row in tx_recipient for el in row]) - sum([el for row in tx_sender for el in row])
 
 
 def get_last_blockchain_value():
