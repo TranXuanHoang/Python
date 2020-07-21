@@ -1,3 +1,6 @@
+# Number of coins rewarded for each mining
+MINING_REWARD = 10
+
 # Genesis block
 genesis_block = {
     'previous_hash': '',
@@ -52,6 +55,18 @@ def get_last_blockchain_value():
     return blockchain[-1]
 
 
+def verify_transaction(transaction):
+    """ Verify whether the remaining balance is enough for a given :transaction to be made.
+
+    Parameters:
+        :transaction: the transaction to be verified.
+
+    Returns:
+        True if the transaction can be made, False otherwise.
+    """
+    return get_balance(transaction['sender']) >= transaction['amount']
+
+
 def add_transaction(sender, recipient, amount=1.0):
     """ Append a new transaction value as well as the last blockchain value
         to the blockchain.
@@ -60,28 +75,45 @@ def add_transaction(sender, recipient, amount=1.0):
         :sender: The sender of the coins.
         :recipient: The recipient of the coins.
         :amount: The amount of coins sent with the transaction (default = 1.0)
+
+    Returns:
+        True if the transaction was add successfully, False otherwise.
     """
     transaction = {
         'sender': sender,
         'recipient': recipient,
         'amount': amount
     }
-    open_transactions.append(transaction)
-    participants.add(sender)
-    participants.add(recipient)
+    if verify_transaction(transaction):
+        open_transactions.append(transaction)
+        participants.add(sender)
+        participants.add(recipient)
+        return True
+    return False
 
 
 def mine_block():
-    """ Put all open transactions into a new block then chain that block into the blockchain. """
+    """ Put all open transactions into a new block then chain that block into the blockchain.
+
+    Returns:
+        True if the whole process of mining block was successful, False otherwise.
+    """
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
+    reward_transaction = {
+        'sender': 'MINING',
+        'recipient': owner,
+        'amount': MINING_REWARD
+    }
+    copied_transactions = open_transactions[:]
+    copied_transactions.append(reward_transaction)
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': [transaction for transaction in open_transactions]
+        'transactions': copied_transactions
     }
     blockchain.append(block)
-    open_transactions.clear()
+    return True
 
 
 def print_blockchain_elements():
@@ -131,13 +163,17 @@ while True:
     if user_choice == '1':
         tx_data = get_transaction_value()
         recipient, amount = tx_data
-        add_transaction(owner, recipient, amount=amount)
+        if add_transaction(owner, recipient, amount=amount):
+            print('Added transaction!')
+        else:
+            print('Transaction failed!')
         print('_' * 50)
         print('Current open transactions:')
         print(open_transactions)
         print('_' * 50)
     elif user_choice == '2':
-        mine_block()
+        if mine_block():
+            open_transactions = []
     elif user_choice == '3':
         print_blockchain_elements()
     elif user_choice == '4':
@@ -161,3 +197,8 @@ while True:
         print_blockchain_elements()
         print('Invalid blockchain!')
         break
+    print('Balance: ' + str(get_balance(owner)))
+else:
+    print('User left!')
+
+print('Done!')
