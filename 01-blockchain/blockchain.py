@@ -11,6 +11,15 @@ open_transactions = []
 owner = 'Hoang'
 
 
+def hash_block(last_block):
+    """ Hash the given :last_block: and return that hash value.
+
+    Arguments:
+        :last_block: the block to be hashed
+    """
+    return '-'.join([str(last_block[key]) for key in last_block])
+
+
 def get_last_blockchain_value():
     """ Get the last block value from the blockchain. """
     if len(blockchain) < 1:
@@ -36,21 +45,27 @@ def add_transaction(sender, recipient, amount=1.0):
 
 
 def mine_block():
+    """ Put all open transactions into a new block then chain that block into the blockchain. """
     last_block = blockchain[-1]
-    hashed_block = '-'.join([str(last_block[key]) for key in last_block])
-    print(hashed_block)
+    hashed_block = hash_block(last_block)
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': open_transactions
+        'transactions': [transaction for transaction in open_transactions]
     }
     blockchain.append(block)
+    open_transactions.clear()
 
 
 def print_blockchain_elements():
     """ Print out all blocks in the blockchain. """
+    print('=' * 50)
     for index, block in enumerate(blockchain):
         print(str(index) + ">>> " + str(block))
+    else:
+        print('_' * 50)
+        print(blockchain)
+        print('=' * 50)
 
 
 def get_transaction_value():
@@ -71,8 +86,8 @@ def verify_chain():
     Returns:
         True if all blocks' data is consistent, False otherwise.
     """
-    for index in reversed(range(len(blockchain))):
-        if index >= 1 and blockchain[index][0] != blockchain[index - 1]:
+    for index, block in enumerate(blockchain):
+        if index >= 1 and block['previous_hash'] != hash_block(blockchain[index - 1]):
             return False
     return True
 
@@ -89,18 +104,30 @@ while True:
         tx_data = get_transaction_value()
         recipient, amount = tx_data
         add_transaction(owner, recipient, amount=amount)
+        print('_' * 50)
+        print('Current open transactions:')
         print(open_transactions)
+        print('_' * 50)
     elif user_choice == '2':
         mine_block()
     elif user_choice == '3':
         print_blockchain_elements()
     elif user_choice == 'h':
         if len(blockchain) >= 1:
-            blockchain[0] = [2]
+            blockchain[0] = {
+                'previous_hash': '',
+                'index': 0,
+                'transactions': [{
+                    'sender': 'Hoang',
+                    'recipient': 'Hacker',
+                    'amount': 1000
+                }]
+            }
     elif user_choice == 'q':
         break
     else:
         print('Invalid option!')
-    # if not verify_chain():
-    #     print('Invalid blockchain!')
-    #     break
+    if not verify_chain():
+        print_blockchain_elements()
+        print('Invalid blockchain!')
+        break
