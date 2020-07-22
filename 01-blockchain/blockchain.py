@@ -120,7 +120,7 @@ def print_blockchain_elements():
     """ Print out all blocks in the blockchain. """
     print('=' * 50)
     for index, block in enumerate(blockchain):
-        print(str(index) + ">>> " + str(block))
+        print(f'{index:>3}>>> {block}')
     else:
         print('_' * 50)
         print(blockchain)
@@ -212,7 +212,7 @@ while True:
         print_blockchain_elements()
         print('Invalid blockchain!')
         break
-    print('Balance: ' + str(get_balance(owner)))
+    print(f'Balance of {owner}: {get_balance(owner):6.2f}')
 else:
     print('User left!')
 
