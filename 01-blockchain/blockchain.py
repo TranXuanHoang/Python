@@ -1,3 +1,6 @@
+import hashlib
+import json
+
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
 
@@ -23,7 +26,7 @@ def hash_block(block):
     Arguments:
         :block: the block to be hashed
     """
-    return '-'.join([str(block[key]) for key in block])
+    return hashlib.sha256(json.dumps(block).encode('utf-8')).hexdigest()
 
 
 def get_balance(participant):
@@ -100,6 +103,7 @@ def mine_block():
     """
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
+    print(hashed_block)
     reward_transaction = {
         'sender': 'MINING',
         'recipient': owner,
@@ -124,6 +128,9 @@ def print_blockchain_elements():
     else:
         print('_' * 50)
         print(blockchain)
+        print('_' * 50)
+        print('In JSON Format:')
+        print(json.dumps(blockchain).encode('utf-8'))
         print('=' * 50)
 
 
