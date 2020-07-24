@@ -8,7 +8,8 @@ MINING_REWARD = 10
 genesis_block = {
     'previous_hash': '',
     'index': 0,
-    'transactions': []
+    'transactions': [],
+    'proof': 100  # for the genesis block, proof can be initialized with any value
 }
 
 # Initialize a blockchain as a list
@@ -27,6 +28,46 @@ def hash_block(block):
         :block: the block to be hashed
     """
     return hashlib.sha256(json.dumps(block).encode('utf-8')).hexdigest()
+
+
+def valid_proof(transactions, last_hash, proof):
+    """ Validate whether a new block fulfill the difficulty criteria.
+
+    Arguments:
+        :transactions: The transactions of the new block to be validated
+            (excluding the MINING block).
+        :last_hash: The hash of the previous (last) block.
+        :proof: A number (also call a 'proof-of-work number' or a 'nonce') used
+            together with the :transactions: and :last_hash: to yield a new hash
+            that suffices a condition defined by the creator(s) of the blockchain.
+    """
+    guess = (str(transactions) + str(last_hash) + str(proof)).encode('utf-8')
+    guess_hash = hashlib.sha256(guess).hexdigest()
+    print(guess_hash)
+    return guess_hash[0:2] == '00'
+
+
+def proof_of_work():
+    """ Find a 'proof-of-work' number for a newly being mined block.
+
+    A 'proof-of-work' makes the hash of
+    current open transactions,
+    hash of the last block,
+    and this proof of work number itself
+    satify the difficulty criteria.
+    This 'proof-of-work' is then added to the new block to be mined. This hash value
+    helps secure the blockchain from any cheat of modifying the previous blocks'
+    :previous_hash: and/or :transactions:.
+
+    Returns:
+        The found proof of work number
+    """
+    last_block = blockchain[-1]
+    last_hash = hash_block(last_block)
+    proof = 0
+    while not valid_proof(open_transactions, last_hash, proof):
+        proof += 1
+    return proof
 
 
 def get_balance(participant):
@@ -103,7 +144,7 @@ def mine_block():
     """
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
-    print(hashed_block)
+    proof = proof_of_work()
     reward_transaction = {
         'sender': 'MINING',
         'recipient': owner,
@@ -114,7 +155,8 @@ def mine_block():
     block = {
         'previous_hash': hashed_block,
         'index': len(blockchain),
-        'transactions': copied_transactions
+        'transactions': copied_transactions,
+        'proof': proof
     }
     blockchain.append(block)
     return True
@@ -154,6 +196,8 @@ def verify_chain():
     """
     for index, block in enumerate(blockchain):
         if index >= 1 and block['previous_hash'] != hash_block(blockchain[index - 1]):
+            return False
+        if index >= 1 and not valid_proof(block['transactions'][:-1], block['previous_hash'], block['proof']):
             return False
     return True
 
