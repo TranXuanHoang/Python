@@ -1,6 +1,7 @@
-import hashlib
 import json
 from collections import OrderedDict
+
+from hash_util import hash_block, hash_string_256
 
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
@@ -22,15 +23,6 @@ owner = 'Hoang'
 participants = set([owner])
 
 
-def hash_block(block):
-    """ Hash the given :block: and return that hash value.
-
-    Arguments:
-        :block: the block to be hashed
-    """
-    return hashlib.sha256(json.dumps(block, sort_keys=True).encode('utf-8')).hexdigest()
-
-
 def valid_proof(transactions, last_hash, proof):
     """ Validate whether a new block fulfill the difficulty criteria.
 
@@ -43,7 +35,7 @@ def valid_proof(transactions, last_hash, proof):
             that suffices a condition defined by the creator(s) of the blockchain.
     """
     guess = (str(transactions) + str(last_hash) + str(proof)).encode('utf-8')
-    guess_hash = hashlib.sha256(guess).hexdigest()
+    guess_hash = hash_string_256(guess)
     print(guess_hash)
     return guess_hash[0:2] == '00'
 
