@@ -1,5 +1,6 @@
 import hashlib
 import json
+from collections import OrderedDict
 
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
@@ -27,7 +28,7 @@ def hash_block(block):
     Arguments:
         :block: the block to be hashed
     """
-    return hashlib.sha256(json.dumps(block).encode('utf-8')).hexdigest()
+    return hashlib.sha256(json.dumps(block, sort_keys=True).encode('utf-8')).hexdigest()
 
 
 def valid_proof(transactions, last_hash, proof):
@@ -123,11 +124,11 @@ def add_transaction(sender, recipient, amount=1.0):
     Returns:
         True if the transaction was add successfully, False otherwise.
     """
-    transaction = {
-        'sender': sender,
-        'recipient': recipient,
-        'amount': amount
-    }
+    transaction = OrderedDict([
+        ('sender', sender),
+        ('recipient', recipient),
+        ('amount', amount)
+    ])
     if verify_transaction(transaction):
         open_transactions.append(transaction)
         participants.add(sender)
@@ -145,11 +146,11 @@ def mine_block():
     last_block = blockchain[-1]
     hashed_block = hash_block(last_block)
     proof = proof_of_work()
-    reward_transaction = {
-        'sender': 'MINING',
-        'recipient': owner,
-        'amount': MINING_REWARD
-    }
+    reward_transaction = OrderedDict([
+        ('sender', 'MINING'),
+        ('recipient', owner),
+        ('amount', MINING_REWARD)
+    ])
     copied_transactions = open_transactions[:]
     copied_transactions.append(reward_transaction)
     block = {
