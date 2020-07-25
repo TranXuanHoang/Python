@@ -6,16 +6,8 @@ from hash_util import hash_block, hash_string_256
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
 
-# Genesis block
-genesis_block = {
-    'previous_hash': '',
-    'index': 0,
-    'transactions': [],
-    'proof': 100  # for the genesis block, proof can be initialized with any value
-}
-
 # Initialize a blockchain as a list
-blockchain = [genesis_block]
+blockchain = []
 open_transactions = []
 owner = 'Hoang'
 
@@ -25,38 +17,52 @@ participants = set([owner])
 
 def load_data():
     """ Load and populate app data from file in hard disk. """
-    with open('blockchain.txt', mode='r') as f:
-        file_content = f.readlines()
-        global blockchain
-        global open_transactions
-        # eliminate the \n' at the end of line by using [:-1]
-        blockchain = json.loads(file_content[0][:-1])
-        open_transactions = json.loads(file_content[1])
+    global blockchain
+    global open_transactions
+    try:
+        with open('blockchain.txt', mode='r') as f:
+            file_content = f.readlines()
+            # eliminate the \n' at the end of line by using [:-1]
+            blockchain = json.loads(file_content[0][:-1])
+            open_transactions = json.loads(file_content[1])
 
-        updated_blockchain = []
-        for block in blockchain:
-            updated_block = {
-                'previous_hash': block['previous_hash'],
-                'index': block['index'],
-                'proof': block['proof'],
-                'transactions': [OrderedDict([
+            updated_blockchain = []
+            for block in blockchain:
+                updated_block = {
+                    'previous_hash': block['previous_hash'],
+                    'index': block['index'],
+                    'proof': block['proof'],
+                    'transactions': [OrderedDict([
+                        ('sender', tx['sender']),
+                        ('recipient', tx['recipient']),
+                        ('amount', tx['amount'])
+                    ]) for tx in block['transactions']]
+                }
+                updated_blockchain.append(updated_block)
+            blockchain = updated_blockchain
+
+            updated_transactions = []
+            for tx in open_transactions:
+                updated_transaction = OrderedDict([
                     ('sender', tx['sender']),
                     ('recipient', tx['recipient']),
                     ('amount', tx['amount'])
-                ]) for tx in block['transactions']]
-            }
-            updated_blockchain.append(updated_block)
-        blockchain = updated_blockchain
-
-        updated_transactions = []
-        for tx in open_transactions:
-            updated_transaction = OrderedDict([
-                ('sender', tx['sender']),
-                ('recipient', tx['recipient']),
-                ('amount', tx['amount'])
-            ])
-            updated_transactions.append(updated_transaction)
-        open_transactions = updated_transactions
+                ])
+                updated_transactions.append(updated_transaction)
+            open_transactions = updated_transactions
+    except IOError:
+        # Genesis block
+        genesis_block = {
+            'previous_hash': '',
+            'index': 0,
+            'transactions': [],
+            'proof': 100  # for the genesis block, proof can be initialized with any value
+        }
+        # Initialize a blockchain as a list
+        blockchain = [genesis_block]
+        open_transactions = []
+    finally:
+        print('Clean up.')
 
 
 load_data()
@@ -67,10 +73,13 @@ def save_data():
 
     The data is saved in the form of separate line of JSONs
     """
-    with open('blockchain.txt', mode='w') as f:
-        f.write(json.dumps(blockchain))
-        f.write('\n')
-        f.write(json.dumps(open_transactions))
+    try:
+        with open('blockchain.txt', mode='w') as f:
+            f.write(json.dumps(blockchain))
+            f.write('\n')
+            f.write(json.dumps(open_transactions))
+    except IOError:
+        print('Saving app data failed.')
 
 
 def valid_proof(transactions, last_hash, proof):
@@ -85,9 +94,7 @@ def valid_proof(transactions, last_hash, proof):
             that suffices a condition defined by the creator(s) of the blockchain.
     """
     guess = (str(transactions) + str(last_hash) + str(proof)).encode('utf-8')
-    print(f'...{guess}')
     guess_hash = hash_string_256(guess)
-    print(guess_hash)
     return guess_hash[0:2] == '00'
 
 
