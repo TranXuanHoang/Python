@@ -5,7 +5,8 @@ class Verification:
     """ Provide utility methods for verifying the integrity of
     `block`s, `transaction`s and the whole `blockchain`. """
 
-    def valid_proof(self, transactions, last_hash, proof):
+    @staticmethod
+    def valid_proof(transactions, last_hash, proof):
         """ Validate whether a new block fulfills the difficulty criteria.
 
         Arguments:
@@ -24,7 +25,8 @@ class Verification:
         guess_hash = hash_string_256(guess)
         return guess_hash[0:2] == '00'
 
-    def verify_chain(self, blockchain):
+    @classmethod
+    def verify_chain(cls, blockchain):
         """ Check whether all blocks contain consistent data.
 
         Arguments:
@@ -36,11 +38,12 @@ class Verification:
         for index, block in enumerate(blockchain):
             if index >= 1 and block.previous_hash != hash_block(blockchain[index - 1]):
                 return False
-            if index >= 1 and not self.valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
+            if index >= 1 and not cls.valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
                 return False
         return True
 
-    def verify_transaction(self, transaction, get_balance):
+    @staticmethod
+    def verify_transaction(transaction, get_balance):
         """ Verify whether the remaining balance is enough for a given :transaction to be made.
 
         Parameters:
@@ -54,7 +57,8 @@ class Verification:
         # argument as that is the default case when the sender is the user of this hosting node.
         return get_balance(transaction.sender) >= transaction.amount
 
-    def verify_transactions(self, open_transactions, get_balance):
+    @classmethod
+    def verify_transactions(cls, open_transactions, get_balance):
         """ Verify whether all open transactions are valid.
 
         Parameters:
@@ -64,4 +68,4 @@ class Verification:
         Returns:
             True if all transactions are valid, False otherwise.
         """
-        return all([self.verify_transaction(tx, get_balance) for tx in open_transactions])
+        return all([cls.verify_transaction(tx, get_balance) for tx in open_transactions])
