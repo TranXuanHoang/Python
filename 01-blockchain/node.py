@@ -32,15 +32,15 @@ class Node:
     def print_blockchain_elements(self):
         """ Print out all blocks in the blockchain. """
         print('=' * 50)
-        for index, block in enumerate(self.blockchain.chain):
+        for index, block in enumerate(self.blockchain.get_chain()):
             print(f'{index:>3}>>> {block}')
         else:
             print('_' * 50)
-            print(self.blockchain.chain)
+            print(self.blockchain.get_chain())
             print('_' * 50)
             print('In JSON Format:')
             jsonizeable_chain = [block.to_deep_dict()
-                                 for block in self.blockchain.chain]
+                                 for block in self.blockchain.get_chain()]
             print(json.dumps(jsonizeable_chain).encode('utf-8'))
             print('=' * 50)
 
@@ -62,14 +62,14 @@ class Node:
                     print('Transaction failed!')
                 print('_' * 50)
                 print('Current open transactions:')
-                print(self.blockchain.open_transactions)
+                print(self.blockchain.get_open_transactions())
                 print('_' * 50)
             elif user_choice == '2':
                 self.blockchain.mine_block()
             elif user_choice == '3':
                 self.print_blockchain_elements()
             elif user_choice == '4':
-                if Verification.verify_transactions(self.blockchain.open_transactions, self.blockchain.get_balance):
+                if Verification.verify_transactions(self.blockchain.get_open_transactions(), self.blockchain.get_balance):
                     print('All transactions are valid')
                 else:
                     print('There are invalid transactions')
@@ -77,7 +77,7 @@ class Node:
                 break
             else:
                 print('Invalid option!')
-            if not Verification.verify_chain(self.blockchain.chain):
+            if not Verification.verify_chain(self.blockchain.get_chain()):
                 self.print_blockchain_elements()
                 print('Invalid blockchain!')
                 break
