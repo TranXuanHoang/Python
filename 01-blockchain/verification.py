@@ -50,6 +50,8 @@ class Verification:
         Returns:
             True if the transaction can be made, False otherwise.
         """
+        # Note that, we can just call get_balance() without passing the transaciton.sender
+        # argument as that is the default case when the sender is the user of this hosting node.
         return get_balance(transaction.sender) >= transaction.amount
 
     def verify_transactions(self, open_transactions, get_balance):
