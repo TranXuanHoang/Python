@@ -32,15 +32,15 @@ class Node:
     def print_blockchain_elements(self):
         """ Print out all blocks in the blockchain. """
         print('=' * 50)
-        for index, block in enumerate(self.blockchain.get_chain()):
+        for index, block in enumerate(self.blockchain.chain):
             print(f'{index:>3}>>> {block}')
         else:
             print('_' * 50)
-            print(self.blockchain.get_chain())
+            print(self.blockchain.chain)
             print('_' * 50)
             print('In JSON Format:')
             jsonizeable_chain = [block.to_deep_dict()
-                                 for block in self.blockchain.get_chain()]
+                                 for block in self.blockchain.chain]
             print(json.dumps(jsonizeable_chain).encode('utf-8'))
             print('=' * 50)
 
@@ -77,7 +77,7 @@ class Node:
                 break
             else:
                 print('Invalid option!')
-            if not Verification.verify_chain(self.blockchain.get_chain()):
+            if not Verification.verify_chain(self.blockchain.chain):
                 self.print_blockchain_elements()
                 print('Invalid blockchain!')
                 break

@@ -16,15 +16,21 @@ class Blockchain:
         genesis_block = Block(index=0, previous_hash='',
                               transactions=[], proof=100, timestamp=0)
         # Initialize a blockchain as a list
-        self.__chain = [genesis_block]
+        self.chain = [genesis_block]
         # Unhandled transactions
         self.__open_transactions = []
         self.load_data()
         self.hosting_node = hosting_node_id
 
-    def get_chain(self):
-        """ Return a copy of the list of blocks. """
+    @property
+    def chain(self):
+        """ Return a copy of the list of blocks. Should only
+        use outside of the `Blockchain` class. """
         return self.__chain[:]
+
+    @chain.setter
+    def chain(self, val):
+        self.__chain = val
 
     def get_open_transactions(self):
         """ Return a copy of the list of open transactions. """
