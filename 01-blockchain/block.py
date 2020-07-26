@@ -1,7 +1,9 @@
 from time import time
 
+from printable import Printable
 
-class Block:
+
+class Block(Printable):
     """ Represent each block in the blockchain. """
 
     def __init__(self, index, previous_hash, transactions, proof, timestamp=None):
@@ -25,3 +27,12 @@ class Block:
         self.timestamp = time() if timestamp is None else timestamp
         self.transactions = transactions
         self.proof = proof
+
+    def to_deep_dict(self):
+        """ Convert the entire block object to a dictionary in which the `transactions` list
+        is also an array of dictionaries. So this method could be seen as returning a deep copy
+        of the block object as a dictionary. """
+        block = self.__dict__.copy()
+        block['transactions'] = [tx.to_ordered_dict().copy()
+                                 for tx in block['transactions']]
+        return block
