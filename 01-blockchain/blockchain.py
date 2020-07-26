@@ -1,8 +1,9 @@
 import json
 
 from block import Block
-from hash_util import hash_block, hash_string_256
+from hash_util import hash_block
 from transaction import Transaction
+from verification import Verification
 
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
@@ -87,23 +88,6 @@ def save_data():
         print('Saving app data failed.')
 
 
-def valid_proof(transactions, last_hash, proof):
-    """ Validate whether a new block fulfill the difficulty criteria.
-
-    Arguments:
-        :transactions: The transactions of the new block to be validated
-            (excluding the MINING block).
-        :last_hash: The hash of the previous (last) block.
-        :proof: A number (also call a 'proof-of-work number' or a 'nonce') used
-            together with the :transactions: and :last_hash: to yield a new hash
-            that suffices a condition defined by the creator(s) of the blockchain.
-    """
-    guess = (str([tx.to_ordered_dict() for tx in transactions]) +
-             str(last_hash) + str(proof)).encode('utf-8')
-    guess_hash = hash_string_256(guess)
-    return guess_hash[0:2] == '00'
-
-
 def proof_of_work():
     """ Find a 'proof-of-work' number for a newly being mined block.
 
@@ -122,7 +106,8 @@ def proof_of_work():
     last_block = blockchain[-1]
     last_hash = hash_block(last_block)
     proof = 0
-    while not valid_proof(open_transactions, last_hash, proof):
+    verifier = Verification()
+    while not verifier.valid_proof(open_transactions, last_hash, proof):
         proof += 1
     return proof
 
@@ -156,18 +141,6 @@ def get_last_blockchain_value():
     return blockchain[-1]
 
 
-def verify_transaction(transaction):
-    """ Verify whether the remaining balance is enough for a given :transaction to be made.
-
-    Parameters:
-        :transaction: the transaction to be verified.
-
-    Returns:
-        True if the transaction can be made, False otherwise.
-    """
-    return get_balance(transaction.sender) >= transaction.amount
-
-
 def add_transaction(sender, recipient, amount=1.0):
     """ Append a new transaction value as well as the last blockchain value
         to the blockchain.
@@ -181,7 +154,8 @@ def add_transaction(sender, recipient, amount=1.0):
         True if the transaction was add successfully, False otherwise.
     """
     transaction = Transaction(sender, recipient, amount)
-    if verify_transaction(transaction):
+    verifier = Verification()
+    if verifier.verify_transaction(transaction, get_balance):
         open_transactions.append(transaction)
         save_data()
         return True
@@ -232,29 +206,6 @@ def get_user_choice():
     return input('Your choice: ')
 
 
-def verify_chain():
-    """ Check whether all blocks contain consistent data.
-
-    Returns:
-        True if all blocks' data is consistent, False otherwise.
-    """
-    for index, block in enumerate(blockchain):
-        if index >= 1 and block.previous_hash != hash_block(blockchain[index - 1]):
-            return False
-        if index >= 1 and not valid_proof(block.transactions[:-1], block.previous_hash, block.proof):
-            return False
-    return True
-
-
-def verify_transactions():
-    """ Verify whether all open transactions are valid.
-
-    Returns:
-        True if all transactions are valid, False otherwise.
-    """
-    return all([verify_transaction(tx) for tx in open_transactions])
-
-
 while True:
     print('Please choose an option')
     print('1: Add a new transaction value')
@@ -281,7 +232,8 @@ while True:
     elif user_choice == '3':
         print_blockchain_elements()
     elif user_choice == '4':
-        if verify_transactions():
+        verifier = Verification()
+        if verifier.verify_transactions(open_transactions, get_balance):
             print('All transactions are valid')
         else:
             print('There are invalid transactions')
@@ -289,7 +241,8 @@ while True:
         break
     else:
         print('Invalid option!')
-    if not verify_chain():
+    verifier = Verification()
+    if not verifier.verify_chain(blockchain):
         print_blockchain_elements()
         print('Invalid blockchain!')
         break
