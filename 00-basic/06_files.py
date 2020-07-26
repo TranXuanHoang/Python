@@ -1,13 +1,13 @@
 """
-Simulate a terminal prompting for user commands. Each time user entered a new command,
-save it into a file in local hard disk so that next time when the user runs the program,
-all command he/she typed in the past can be refered again by issuing the following command:
+Simulate a terminal prompting for commands from users. Each time the user entered a new command,
+save it into a file in the local hard disk so that next time when the user runs the program,
+all commands he/she typed in the past can be refered again by issuing the following command:
   rf    - read the whole commands
   rf n  - read the most current 'n' commands
 
 Ask the username and the type of the file at the beginning of each terminal session to
-determine which file type to use during that session. File type should only either
-'json' (JSON file - human readable) or 'bin' (binary file)
+determine which file type to use during that session. File type should only be either
+'json' (JSON file - human readable) or 'bin' (binary file).
 """
 import json
 import pickle
@@ -24,7 +24,7 @@ def ask_for_username():
 
 
 def ask_for_file_type():
-    """ Ask the user to provide the type of the file to which data will be saved
+    """ Ask the user to provide the type of file to which data will be saved.
 
     Should be either 'json' (for text file in JSON format) or 'bin' (for binary file)"""
     while True:
@@ -49,8 +49,8 @@ def get_user_input(username, session_id):
 
 
 def save_to_file(file_name):
-    """ Save data into a JSON file (text tha can be read by human) 
-    that will be stored in local hard disk.
+    """ Convert commands list to JSON data and save that data into a JSON file
+    (text that can be read by human) that will be stored in the local hard disk.
 
     Arguments:
         :file_name: The name of the file to which data will be saved.
@@ -60,18 +60,18 @@ def save_to_file(file_name):
 
 
 def save_to_binary_file(file_name):
-    """ Save data into a file that will be stored in local hard disk.
+    """ Save data into a binary file that will be stored in the local hard disk.
 
     Arguments:
-        :file_name: The name of the file to which data will be saved.
+        :file_name: The name of the binary file to which data will be saved.
     """
     with open(file_name, mode='wb') as f:
         f.write(pickle.dumps(commands))
 
 
 def read_from_file(file_name, lines='All'):
-    """ Read data from a text file (human readable) and print out the
-    most currently entered commands.
+    """ Read data from a text file (human readable) and print out the most currently
+    entered commands. The JSON data is deserialized to its original list of commands.
 
     Arguments:
         :file_name: The name of the text file to be read.
@@ -89,9 +89,10 @@ def read_from_file(file_name, lines='All'):
 
 def read_from_binary_file(file_name, lines='All'):
     """ Read data from a binary file and print out the most currently entered commands.
+    The binary data is deserialized to its original list of commands.
 
     Arguments:
-        :file_name: The name of the file to be read.
+        :file_name: The name of the binary file to be read.
         :lines: The number of the most currently entered commands that will be printed out.
     """
     with open(file_name, mode='rb') as f:
