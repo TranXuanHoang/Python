@@ -1,9 +1,9 @@
 import json
 
 from block import Block
-from hash_util import hash_block
 from transaction import Transaction
-from verification import Verification
+from utility.hash_util import hash_block
+from utility.verification import Verification
 
 # Number of coins rewarded for each mining
 MINING_REWARD = 10
