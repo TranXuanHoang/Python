@@ -15,11 +15,33 @@ def get_ui():
     return 'Blockchain app!'
 
 
+@app.route('/mine', methods=['POST'])
+def mine():
+    """ Mine coins by putting all open transactions in a block,
+    then put that block in the blockchain. """
+    block = blockchain.mine_block()
+    if block != None:
+        dict_block = block.__dict__.copy()
+        dict_block['transactions'] = [
+            tx.__dict__ for tx in dict_block['transactions']]
+        response = {
+            'message': 'Block added successfully',
+            'block': dict_block
+        }
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Adding a block failed',
+            'wallet_set_up': wallet.public_key != None
+        }
+        return jsonify(response), 500
+
+
 @app.route('/chain', methods=['GET'])
 def get_chain():
     """ Get the entire blockchain. """
     chain_snapshot = blockchain.chain
-    dict_chain = [block.__dict__ for block in chain_snapshot]
+    dict_chain = [block.__dict__.copy() for block in chain_snapshot]
     for dict_block in dict_chain:
         dict_block['transactions'] = [
             tx.__dict__ for tx in dict_block['transactions']]
