@@ -127,8 +127,11 @@ class Blockchain:
                 If the passed-in value is `None` the method will calculate the account
                 balance for the `self.hosting_node`.
 
-        Returns: the result of substracting the total amount sent from the total amount received.
+        Returns: None if the `hosting_node` (the `hosting_node` is also the wallet's `public key`) is None.
+            Otherwise return the result of substracting the total amount sent from the total amount received.
         """
+        if self.hosting_node == None:
+            return None
         participant = self.hosting_node if participant is None else participant
         # Amounts sent in the past (already mined and put in blockchain blocks)
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender ==

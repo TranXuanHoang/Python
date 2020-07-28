@@ -20,12 +20,13 @@ def create_keys():
     """ Generate a pair of public and private keys and save them into a file. """
     wallet.create_keys()
     if wallet.save_key():
-        response = {
-            'public_key': wallet.public_key,
-            'private_key': wallet.private_key
-        }
         global blockchain
         blockchain = Blockchain(wallet.public_key)
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key,
+            'funds': blockchain.get_balance()
+        }
         return jsonify(response), 201
     else:
         response = {
@@ -38,16 +39,35 @@ def create_keys():
 def load_keys():
     """ Load the public and private keys of the wallet. """
     if wallet.load_keys():
-        response = {
-            'public_key': wallet.public_key,
-            'private_key': wallet.private_key
-        }
         global blockchain
         blockchain = Blockchain(wallet.public_key)
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key,
+            'funds': blockchain.get_balance()
+        }
         return jsonify(response), 200
     else:
         response = {
             'message': 'Loading the keys failed.',
+        }
+        return jsonify(response), 500
+
+
+@app.route('/balance', methods=['GET'])
+def get_balance():
+    """ Get the current coins balance remaining in the wallet. """
+    balance = blockchain.get_balance()
+    if balance != None:
+        response = {
+            'message': 'Fetched balance successfully.',
+            'funds': balance
+        }
+        return jsonify(response), 200
+    else:
+        response = {
+            'message': 'Loading balance failed.',
+            'wallet_set_up': wallet.public_key != None
         }
         return jsonify(response), 500
 
@@ -63,7 +83,8 @@ def mine():
             tx.__dict__ for tx in dict_block['transactions']]
         response = {
             'message': 'Block added successfully',
-            'block': dict_block
+            'block': dict_block,
+            'funds': blockchain.get_balance()
         }
         return jsonify(response), 201
     else:
