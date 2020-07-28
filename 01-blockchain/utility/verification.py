@@ -1,4 +1,5 @@
 from utility.hash_util import hash_block, hash_string_256
+from wallet import Wallet
 
 
 class Verification:
@@ -43,19 +44,25 @@ class Verification:
         return True
 
     @staticmethod
-    def verify_transaction(transaction, get_balance):
-        """ Verify whether the remaining balance is enough for a given :transaction to be made.
+    def verify_transaction(transaction, get_balance, check_funds=True):
+        """ Verify whether the remaining balance is enough for a given `transaction` to be made
+        and whether the `transaction` itself was not modified (tampered).
 
         Parameters:
             transaction (`Transaction`): The transaction to be verified.
             get_balance (`function`): The address of the function calculating the account balance.
+            check_funds (default `True`): A flag telling whether this method needs to check
+                the remaining account balance is enough for making the transaction.
 
         Returns:
             True if the transaction can be made, False otherwise.
         """
         # Note that, we can just call get_balance() without passing the transaciton.sender
         # argument as that is the default case when the sender is the user of this hosting node.
-        return get_balance(transaction.sender) >= transaction.amount
+        if check_funds:
+            return get_balance(transaction.sender) >= transaction.amount and Wallet.verify_transaction(transaction)
+        else:
+            return Wallet.verify_transaction(transaction)
 
     @classmethod
     def verify_transactions(cls, open_transactions, get_balance):
@@ -68,4 +75,4 @@ class Verification:
         Returns:
             True if all transactions are valid, False otherwise.
         """
-        return all([cls.verify_transaction(tx, get_balance) for tx in open_transactions])
+        return all([cls.verify_transaction(tx, get_balance, False) for tx in open_transactions])

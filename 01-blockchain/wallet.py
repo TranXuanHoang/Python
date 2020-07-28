@@ -90,9 +90,6 @@ class Wallet:
         Returns:
             True if the transaction content was preserved, False if its content was changed.
         """
-        # The mining transaction will not be verified
-        if transaction.sender == 'MINING':
-            return True
         # transaction.sender is the public_key of that sender
         public_key = RSA.importKey(binascii.unhexlify(transaction.sender))
         verifier = PKCS1_v1_5.new(public_key)
