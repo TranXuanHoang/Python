@@ -1,4 +1,6 @@
 from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
 import Crypto.Random
 import binascii
 
@@ -57,3 +59,23 @@ class Wallet:
         private_key = RSA.generate(1024, Crypto.Random.new().read)
         public_key = private_key.publickey()
         return binascii.hexlify(private_key.exportKey(format='DER')).decode('ascii'), binascii.hexlify(public_key.exportKey(format='DER')).decode('ascii')
+
+    def sign_transaction(self, sender, recipient, amount):
+        """ Create a signature for a transaction.
+
+        The signature is created with the PKCS#1 v1.5 algorithm (RSA digital signature protocol)
+        using the generated `private_key`. The sender of the transaction authenticate
+        the transaction itself using SHA256. Then later on, the transaction can be
+        verified using the `public_key`.
+
+        Arguments:
+            sender (`str`): The sender of the transaction.
+            recipient (`str`): The recipient of the transaction.
+            amount (`float`): The amount of coins sent with the transaction.
+        """
+        signer = PKCS1_v1_5.new(RSA.importKey(
+            binascii.unhexlify(self.private_key)))
+        h = SHA256.new((str(sender) + str(recipient) +
+                        str(amount)).encode('utf8'))
+        signature = signer.sign(h)
+        return binascii.hexlify(signature).decode('ascii')
