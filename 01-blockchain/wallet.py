@@ -31,18 +31,28 @@ class Wallet:
     def save_key(self):
         """ Save the private and public keys to a file for later uses.
         This is only for demonstration of persisting keys in this example.
-        In the real world applications, we should not save keys like this. """
+        In the real world applications, we should not save keys like this.
+
+        Returns
+            True if saving key succeeded, False otherwise.
+        """
         if self.public_key != None and self.private_key != None:
             try:
                 with open('wallet.txt', mode='w') as f:
                     f.write(self.public_key)
                     f.write('\n')
                     f.write(self.private_key)
+                return True
             except (IOError, IndexError):
                 print('Saving wallet failed...')
+                return False
 
     def load_keys(self):
-        """ Load both the private and public keys from a file used in saving them before. """
+        """ Load both the private and public keys from a file used in saving them before.
+
+        Returns
+            True if loading keys succeeded, False otherwise.
+        """
         try:
             with open('wallet.txt', mode='r') as f:
                 keys = f.readlines()
@@ -50,8 +60,10 @@ class Wallet:
                 private_key = keys[1]
                 self.public_key = public_key
                 self.private_key = private_key
+            return True
         except (IOError, IndexError):
             print('Loading wallet failed...')
+            return False
 
     def generate_keys(self):
         """ Generate and return a tuple of private and public keys (both are in string).

@@ -15,6 +15,43 @@ def get_ui():
     return 'Blockchain app!'
 
 
+@app.route('/wallet', methods=['POST'])
+def create_keys():
+    """ Generate a pair of public and private keys and save them into a file. """
+    wallet.create_keys()
+    if wallet.save_key():
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key
+        }
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Saving the keys failed.',
+        }
+        return jsonify(response), 500
+
+
+@app.route('/wallet', methods=['GET'])
+def load_keys():
+    """ Load the public and private keys of the wallet. """
+    if wallet.load_keys():
+        response = {
+            'public_key': wallet.public_key,
+            'private_key': wallet.private_key
+        }
+        global blockchain
+        blockchain = Blockchain(wallet.public_key)
+        return jsonify(response), 200
+    else:
+        response = {
+            'message': 'Loading the keys failed.',
+        }
+        return jsonify(response), 500
+
+
 @app.route('/mine', methods=['POST'])
 def mine():
     """ Mine coins by putting all open transactions in a block,
