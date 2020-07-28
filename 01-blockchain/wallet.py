@@ -79,3 +79,23 @@ class Wallet:
                         str(amount)).encode('utf8'))
         signature = signer.sign(h)
         return binascii.hexlify(signature).decode('ascii')
+
+    @staticmethod
+    def verify_transaction(transaction):
+        """ Verify whether a signed transaction was not modified (tampered).
+
+        Arguments:
+            transaction (:obj:`Transaction`): The transaction to be verified.
+
+        Returns:
+            True if the transaction content was preserved, False if its content was changed.
+        """
+        # The mining transaction will not be verified
+        if transaction.sender == 'MINING':
+            return True
+        # transaction.sender is the public_key of that sender
+        public_key = RSA.importKey(binascii.unhexlify(transaction.sender))
+        verifier = PKCS1_v1_5.new(public_key)
+        h = SHA256.new((str(transaction.sender) + str(transaction.recipient) +
+                        str(transaction.amount)).encode('utf8'))
+        return verifier.verify(h, binascii.unhexlify(transaction.signature))
