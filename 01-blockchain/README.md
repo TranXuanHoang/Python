@@ -37,9 +37,14 @@ The app provides the following APIs:
 | ```POST /wallet``` | **Create wallet keys:** Create a pair of public and private keys, then save them in a file. <pre lang="shell">curl --location --request POST 'http://localhost:5000/wallet'</pre> |
 | ```GET /wallet``` | **Load wallet keys:** Load the public and private keys of the wallet. <pre lang="shell">curl --location --request GET 'http://localhost:5000/wallet'</pre> |
 | ```GET /balance``` | **Load the current balance:** Load the current balance of remaining coins in the wallet. <pre lang="shell">curl --location --request GET 'http://localhost:5000/balance'</pre> |
-| ```POST /transaction``` | **Make a new transaction:** Add a new transaction sending an `amount` of coins to a `recipient`. </br> **Request Header:** `Content-Type: application/json`, </br>**Body:** `{ "recipient": "Bob", "amount": 7.5 }` <pre lang="shell">curl --location --request POST 'http://localhost:5000/transaction' --header 'Content-Type: application/json' --data-raw '{"recipient": "Bob", "amount": 7.5}'</pre> |
+| ```POST /transaction``` | **Make a new transaction:** Add a new transaction sending an `amount` of coins to a `recipient`. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{ "recipient": "Bob", "amount": 7.5 }` <pre lang="shell">curl --location --request POST 'http://localhost:5000/transaction' --header 'Content-Type: application/json' --data-raw '{"recipient": "Bob", "amount": 7.5}'</pre> |
 | ```GET /transactions``` | **Fetch transactions:** Fetch all open transactions available for mining. <pre lang="shell">curl --location --request GET 'http://localhost:5000/transactions'</pre> |
+| ```POST /node``` | **Add a new node:** Add a new node to the set of connected nodes. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{"node": "node_url"}` <pre lang="shell">curl -X POST http://localhost:5000/node -H 'content-type: application/json' -d '{"node": "localhost:5001"}'</pre> |
+| ```DELETE /node/<node_url>``` | **Delete a node:** Delete a node from the set of connected nodes. <pre lang="shell">curl -X DELETE http://localhost:5000/node/localhost:5001</pre> |
+| ```GET /nodes``` | **Get all connected nodes:** Fetch a list of all connected nodes. <pre lang="shell">curl -X GET http://localhost:5000/nodes</pre> |
 
 ## App Snapshot
 
-![App Snapshot](./docs/AppSnapshot.gif)
+<p align="center">
+    <img src="./docs/AppSnapshot.gif" width="65%"/>
+</p>
