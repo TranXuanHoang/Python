@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"
         integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
     <style>
+        .wrap-text {
+            word-wrap: break-word;
+        }
+
+        .subtitle {
+            color: chocolate;
+            font-weight: bold;
+        }
+
         .lds-ring {
             display: inline-block;
             position: relative;
@@ -64,8 +73,10 @@
             <div v-if="error" class="alert alert-danger" role="alert">
                 {{ error }}
             </div>
-            <div v-if="success" class="alert alert-success" role="alert">
+            <div v-if="success" class="alert alert-success wrap-text" role="alert">
                 {{ success }}
+                <div><span class="subtitle">Public Key:</span> {{ wallet.public_key }}</div>
+                <div><span class="subtitle">Private Key:</span> {{ wallet.private_key }}</div>
             </div>
             <div class="row">
                 <div class="col">
@@ -235,9 +246,41 @@
             methods: {
                 onCreateWallet: function () {
                     // Send Http request to create a new wallet (and return keys)
+                    vm = this
+                    this.walletLoading = true
+                    axios.post('/wallet').then(function (response) {
+                        vm.error = null
+                        vm.success = 'Created Wallet!'
+                        vm.wallet = {
+                            public_key: response.data.public_key,
+                            private_key: response.data.private_key
+                        }
+                        vm.walletLoading = false
+                    }).catch(function (error) {
+                        vm.success = null
+                        vm.error = error.data.message
+                        vm.wallet = null
+                        vm.walletLoading = false
+                    })
                 },
                 onLoadWallet: function () {
                     // Send Http request to load an existing wallet (from a file on the server)
+                    vm = this
+                    this.walletLoading = true
+                    axios.get('/wallet').then(function (response) {
+                        vm.error = null
+                        vm.success = 'Loaded Wallet!'
+                        vm.wallet = {
+                            public_key: response.data.public_key,
+                            private_key: response.data.private_key
+                        }
+                        vm.walletLoading = false
+                    }).catch(function (error) {
+                        vm.success = null
+                        vm.error = error.data.message
+                        vm.wallet = null
+                        vm.walletLoading = false
+                    })
                 },
                 onSendTx: function () {
                     // Send Transaction to backend
