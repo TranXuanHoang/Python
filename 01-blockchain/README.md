@@ -39,3 +39,7 @@ The app provides the following APIs:
 | ```GET /balance``` | **Load the current balance:** Load the current balance of remaining coins in the wallet. <pre lang="shell">curl --location --request GET 'http://localhost:5000/balance'</pre> |
 | ```POST /transaction``` | **Make a new transaction:** Add a new transaction sending an `amount` of coins to a `recipient`. </br> **Request Header:** `Content-Type: application/json`, </br>**Body:** `{ "recipient": "Bob", "amount": 7.5 }` <pre lang="shell">curl --location --request POST 'http://localhost:5000/transaction' --header 'Content-Type: application/json' --data-raw '{"recipient": "Bob", "amount": 7.5}'</pre> |
 | ```GET /transactions``` | **Fetch transactions:** Fetch all open transactions available for mining. <pre lang="shell">curl --location --request GET 'http://localhost:5000/transactions'</pre> |
+
+## App Snapshot
+
+![App Snapshot](./docs/AppSnapshot.gif)
