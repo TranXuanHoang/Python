@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <div class="col text-right">
-                    <h2>Funds: {{ funds }}</h2>
+                    <h2>Funds: {{ funds.toFixed(2) }}</h2>
                 </div>
             </div>
             <hr>
@@ -246,7 +246,7 @@
             methods: {
                 onCreateWallet: function () {
                     // Send Http request to create a new wallet (and return keys)
-                    vm = this
+                    let vm = this
                     this.walletLoading = true
                     axios.post('/wallet').then(function (response) {
                         vm.error = null
@@ -255,17 +255,18 @@
                             public_key: response.data.public_key,
                             private_key: response.data.private_key
                         }
+                        vm.funds = response.data.funds
                         vm.walletLoading = false
                     }).catch(function (error) {
                         vm.success = null
-                        vm.error = error.data.message
+                        vm.error = error.response.data.message
                         vm.wallet = null
                         vm.walletLoading = false
                     })
                 },
                 onLoadWallet: function () {
                     // Send Http request to load an existing wallet (from a file on the server)
-                    vm = this
+                    let vm = this
                     this.walletLoading = true
                     axios.get('/wallet').then(function (response) {
                         vm.error = null
@@ -274,19 +275,52 @@
                             public_key: response.data.public_key,
                             private_key: response.data.private_key
                         }
+                        vm.funds = response.data.funds
                         vm.walletLoading = false
                     }).catch(function (error) {
                         vm.success = null
-                        vm.error = error.data.message
+                        vm.error = error.response.data.message
                         vm.wallet = null
                         vm.walletLoading = false
                     })
                 },
                 onSendTx: function () {
                     // Send Transaction to backend
+                    this.txLoading = true
+                    let vm = this
+                    axios.post('/transaction', {
+                        recipient: this.outgoingTx.recipient,
+                        amount: this.outgoingTx.amount
+                    }).then(function (response) {
+                        vm.error = null
+                        vm.success = response.data.message
+                        vm.funds = response.data.funds
+                        vm.txLoading = false
+                        vm.onCleanupTx()
+                    }).catch(function (error) {
+                        vm.success = null
+                        vm.error = error.response.data.message
+                        vm.txLoading = false
+                    })
+                },
+                onCleanupTx: function () {
+                    // Set the outgoingTx back to initial value (call after )
+                    this.outgoingTx = {
+                        recipient: '',
+                        amount: 0
+                    }
                 },
                 onMine: function () {
                     // Mine coins from open transaction
+                    let vm = this
+                    axios.post('/mine').then(function (response) {
+                        vm.error = null
+                        vm.success = response.data.message
+                        vm.funds = response.data.funds
+                    }).catch(function (error) {
+                        vm.success = null
+                        vm.error = error.response.data.message
+                    })
                 },
                 onLoadData: function () {
                     if (this.view === 'chain') {
@@ -302,7 +336,7 @@
                         })
                     } else {
                         // Load open transactions data
-                        vm = this
+                        let vm = this
                         this.dataLoading = true
                         axios.get('/transactions').then(function (response) {
                             vm.openTransactions = response.data
