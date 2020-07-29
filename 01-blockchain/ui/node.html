@@ -248,8 +248,26 @@
                 onLoadData: function () {
                     if (this.view === 'chain') {
                         // Load blockchain data
+                        let vm = this
+                        this.dataLoading = true
+                        axios.get('/chain').then(function (response) {
+                            vm.blockchain = response.data
+                            vm.dataLoading = false
+                        }).catch(function (error) {
+                            vm.dataLoading = false
+                            vm.error = 'Something went wrong when trying to load blockchain.'
+                        })
                     } else {
-                        // Load transaction data
+                        // Load open transactions data
+                        vm = this
+                        this.dataLoading = true
+                        axios.get('/transactions').then(function (response) {
+                            vm.openTransactions = response.data
+                            vm.dataLoading = false
+                        }).catch(function (error) {
+                            vm.dataLoading = false
+                            vm.error = 'Something went wrong when loading transactions.'
+                        })
                     }
                 }
             }
