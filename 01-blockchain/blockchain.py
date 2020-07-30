@@ -11,7 +11,21 @@ MINING_REWARD = 10
 
 
 class Blockchain:
-    def __init__(self, hosting_node_id):
+    """ Represents the underlying blockchain.
+
+    Attributes:
+        chain (:obj:`list` of `Block`): A list of `Block`s chained together to form
+            the blockchain.
+        __open_transactions (:obj:`list` of `Transaction`): A list of open `Transaction`s.
+        public_key (`str`): The public key assigined to the `wallet` of the node
+            owning this blockchain.
+        __peer_nodes (:obj:`set` of `str`): :obj:`set` of `node URL`s of `Node`s that
+            is connecting to the node owning this blockchain.
+        node_id (`int`): The id of the node hosting the app
+            (equal to the `port` argument passed in when starting the app).
+    """
+
+    def __init__(self, public_key, node_id):
         # Genesis block
         # Note that, for the genesis block, proof can be initialized with any value
         genesis_block = Block(index=0, previous_hash='',
@@ -20,8 +34,9 @@ class Blockchain:
         self.chain = [genesis_block]
         # Unhandled transactions
         self.__open_transactions = []
-        self.hosting_node = hosting_node_id
+        self.public_key = public_key
         self.__peer_nodes = set()
+        self.node_id = node_id
         self.load_data()
 
     @property
@@ -41,7 +56,7 @@ class Blockchain:
     def load_data(self):
         """ Load and populate app data from file in hard disk. """
         try:
-            with open('blockchain.txt', mode='r') as f:
+            with open(f'blockchain-{self.node_id}.txt', mode='r') as f:
                 file_content = f.readlines()
                 # eliminate the \n' at the end of line by using [:-1]
                 blockchain = json.loads(file_content[0][:-1])
@@ -80,7 +95,7 @@ class Blockchain:
         The data is saved in the form of separate line of JSONs
         """
         try:
-            with open('blockchain.txt', mode='w') as f:
+            with open(f'blockchain-{self.node_id}.txt', mode='w') as f:
                 # Method 1: use the to_deep_dict() to convert each block to a form
                 # that can be dumped as JSON
                 # saveable_chain = [block.to_deep_dict() for block in blockchain]
@@ -131,14 +146,14 @@ class Blockchain:
         Arguments:
             participant (default `None`): The account for which balance is calculated.
                 If the passed-in value is `None` the method will calculate the account
-                balance for the `self.hosting_node`.
+                balance for the `self.public_key`.
 
-        Returns: None if the `hosting_node` (the `hosting_node` is also the wallet's `public key`) is None.
+        Returns: None if the `public_key` (the `public_key` is also the wallet's `public key`) is None.
             Otherwise return the result of substracting the total amount sent from the total amount received.
         """
-        if self.hosting_node == None:
+        if self.public_key == None:
             return None
-        participant = self.hosting_node if participant is None else participant
+        participant = self.public_key if participant is None else participant
         # Amounts sent in the past (already mined and put in blockchain blocks)
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender ==
                       participant] for block in self.__chain]
@@ -174,7 +189,7 @@ class Blockchain:
         Returns:
             True if the transaction was add successfully, False otherwise.
         """
-        if self.hosting_node == None:
+        if self.public_key == None:
             return False
         transaction = Transaction(sender, recipient, signature, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
@@ -189,14 +204,14 @@ class Blockchain:
         Returns:
             The :obj:`Block` mined if the whole process of mining block was successful, None otherwise.
         """
-        if self.hosting_node == None:
+        if self.public_key == None:
             return None
         last_block = self.__chain[-1]
         hashed_block = hash_block(last_block)
         proof = self.proof_of_work()
         # The mining transaction is not signed (pass in signature as empty str)
         reward_transaction = Transaction(
-            'MINING', self.hosting_node, '', MINING_REWARD)
+            'MINING', self.public_key, '', MINING_REWARD)
         copied_transactions = self.__open_transactions[:]
         for tx in copied_transactions:
             if not Wallet.verify_transaction(tx):

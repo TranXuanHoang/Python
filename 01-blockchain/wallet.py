@@ -16,11 +16,14 @@ class Wallet:
     Attributes:
         private_key (`str`): The private key of the wallet.
         public_key (`str`): The public key of the wallet.
+        node_id (`int`): The id of the node hosting the app
+            (equal to the `port` argument passed in when starting the app).
     """
 
-    def __init__(self):
+    def __init__(self, node_id):
         self.private_key = None
         self.public_key = None
+        self.node_id = node_id
 
     def create_keys(self):
         """ Generate a pair of private and public keys and populate them to the wallet. """
@@ -38,7 +41,7 @@ class Wallet:
         """
         if self.public_key != None and self.private_key != None:
             try:
-                with open('wallet.txt', mode='w') as f:
+                with open(f'wallet-{self.node_id}.txt', mode='w') as f:
                     f.write(self.public_key)
                     f.write('\n')
                     f.write(self.private_key)
@@ -54,7 +57,7 @@ class Wallet:
             True if loading keys succeeded, False otherwise.
         """
         try:
-            with open('wallet.txt', mode='r') as f:
+            with open(f'wallet-{self.node_id}.txt', mode='r') as f:
                 keys = f.readlines()
                 public_key = keys[0][:-1]
                 private_key = keys[1]

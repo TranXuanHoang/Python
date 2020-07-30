@@ -5,7 +5,7 @@ from utility.verification import Verification
 from wallet import Wallet
 
 
-class Node:
+class NodeConsole:
     """ Initialize starting point of the app and provide console and/or terminal based
     commands for interacting with users.
 
@@ -17,10 +17,11 @@ class Node:
             all state of the blockchain and transactions as well as its processing logic methods.
     """
 
-    def __init__(self):
-        self.wallet = Wallet()
+    def __init__(self, port):
+        self.port = port
+        self.wallet = Wallet(port)
         self.wallet.create_keys()
-        self.blockchain = Blockchain(self.wallet.public_key)
+        self.blockchain = Blockchain(self.wallet.public_key, port)
 
     def get_transaction_value(self):
         """ Return user input as a tuple. """
@@ -84,10 +85,10 @@ class Node:
                     print('There are invalid transactions')
             elif user_choice == '5':
                 self.wallet.create_keys()
-                self.blockchain = Blockchain(self.wallet.public_key)
+                self.blockchain = Blockchain(self.wallet.public_key, self.port)
             elif user_choice == '6':
                 self.wallet.load_keys()
-                self.blockchain = Blockchain(self.wallet.public_key)
+                self.blockchain = Blockchain(self.wallet.public_key, self.port)
             elif user_choice == '7':
                 self.wallet.save_key()
             elif user_choice == 'q':
@@ -107,5 +108,13 @@ class Node:
 
 
 if __name__ == '__main__':
-    node = Node()
+    from argparse import ArgumentParser
+    parser = ArgumentParser(
+        prog="Blockchain NodeConsole",
+        usage="python node.py [-p portNum | --port portNum]",
+    )
+    parser.add_argument('-p', '--port', type=int, default=5000)
+    args = parser.parse_args()
+    port = args.port
+    node = NodeConsole(port)
     node.listen_for_input()
