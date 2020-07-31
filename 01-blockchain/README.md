@@ -2,6 +2,7 @@
 
 [![Written In](https://img.shields.io/badge/Written%20in-Python-blue?style=flat-square)](https://python.org/)
 [![Web Framework](https://img.shields.io/badge/Web%20Framework-Flask-orange?style=flat-square)](https://palletsprojects.com/p/flask/)
+[![Make HTTP Requests](https://img.shields.io/badge/Make%20HTTP%20Requests%20with-Requests-9B59B6?style=flat-square)](https://requests.readthedocs.io/)
 [![Blockchain](https://img.shields.io/badge/Blockchain-16A085?style=flat-square)](https://en.wikipedia.org/wiki/Blockchain)
 [![Cryptocurrency](https://img.shields.io/badge/Cryptocurrency-16A085?style=flat-square&logo=bitcoin)](https://en.wikipedia.org/wiki/Cryptocurrency)
 
@@ -22,9 +23,10 @@ Beside the [Python](https://www.python.org/) standard libraries, this app also n
 | Package | Purpose |
 | --------| --------|
 | [pycrypto](https://pypi.org/project/pycrypto/) | Utilize `encryption` and/or `decryption` algorithms |
-| [pycryptodome](https://pypi.org/project/pycryptodome/) | Utilize `encryption` and/or `decryption` algorithms on Windows |
+| [pycryptodome](https://pypi.org/project/pycryptodome/) | Utilize `encryption` and/or `decryption` algorithms (quite stable on Windows) |
 | [Flask](https://pypi.org/project/Flask/) | Serve and handle HTTP requests |
 | [Flask-Cors](https://pypi.org/project/Flask-Cors/) | Handle `Cross Origin Resource Sharing` (CORS) and make cross-origin AJAX possible |
+| [requests](https://pypi.org/project/requests/) | Make HTTP requests inside Python code |
 
 ## APIs List
 
@@ -32,16 +34,17 @@ The app provides the following APIs:
 
 | API Endpoint | Description |
 |--------------|-------------|
-| ```GET: /chain``` | **Fetch blockchain:** Fetch the whole blockchain. <pre lang="shell">curl --location --request GET 'http://localhost:5000/chain'</pre> |
-| ```POST: /mine``` | **Mine a new block:** Mine a new block by adding all open transactions into a new block, then add that block into the blockchain. <pre lang="shell">curl --location --request POST 'http://localhost:5000/mine' </pre> |
-| ```POST /wallet``` | **Create wallet keys:** Create a pair of public and private keys, then save them in a file. <pre lang="shell">curl --location --request POST 'http://localhost:5000/wallet'</pre> |
-| ```GET /wallet``` | **Load wallet keys:** Load the public and private keys of the wallet. <pre lang="shell">curl --location --request GET 'http://localhost:5000/wallet'</pre> |
-| ```GET /balance``` | **Load the current balance:** Load the current balance of remaining coins in the wallet. <pre lang="shell">curl --location --request GET 'http://localhost:5000/balance'</pre> |
-| ```POST /transaction``` | **Make a new transaction:** Add a new transaction sending an `amount` of coins to a `recipient`. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{ "recipient": "Bob", "amount": 7.5 }` <pre lang="shell">curl --location --request POST 'http://localhost:5000/transaction' --header 'Content-Type: application/json' --data-raw '{"recipient": "Bob", "amount": 7.5}'</pre> |
-| ```GET /transactions``` | **Fetch transactions:** Fetch all open transactions available for mining. <pre lang="shell">curl --location --request GET 'http://localhost:5000/transactions'</pre> |
-| ```POST /node``` | **Add a new node:** Add a new node to the set of connected nodes. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{"node": "node_url"}` <pre lang="shell">curl -X POST http://localhost:5000/node -H 'content-type: application/json' -d '{"node": "localhost:5001"}'</pre> |
+| ```GET: /chain``` | **Fetch blockchain:** Fetch the whole blockchain. <pre lang="shell">curl -X GET 'http://localhost:5000/chain'</pre> |
+| ```POST: /mine``` | **Mine a new block:** Mine a new block by adding all open transactions into a new block, then add that block into the blockchain. <pre lang="shell">curl -X POST 'http://localhost:5000/mine' </pre> |
+| ```POST /wallet``` | **Create wallet keys:** Create a pair of public and private keys, then save them in a file. <pre lang="shell">curl -X POST 'http://localhost:5000/wallet'</pre> |
+| ```GET /wallet``` | **Load wallet keys:** Load the public and private keys of the wallet. <pre lang="shell">curl -X GET 'http://localhost:5000/wallet'</pre> |
+| ```GET /balance``` | **Load the current balance:** Load the current balance of remaining coins in the wallet. <pre lang="shell">curl -X GET 'http://localhost:5000/balance'</pre> |
+| ```POST /transaction``` | **Make a new transaction:** Add a new transaction sending an `amount` of coins to a `recipient`. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{ "recipient": "Bob", "amount": 7.5 }` </br></br> <code lang="shell">&nbsp; curl -X POST 'http://localhost:5000/transaction' \\</br>&nbsp;&nbsp; -H 'Content-Type: application/json' \\</br>&nbsp;&nbsp; -d '{"recipient": "Bob", "amount": 7.5}'</code> |
+| ```GET /transactions``` | **Fetch transactions:** Fetch all open transactions available for mining. <pre lang="shell">curl -X GET 'http://localhost:5000/transactions'</pre> |
+| ```POST /node``` | **Add a new node:** Add a new node to the set of connected nodes. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{"node": "node_url"}` </br></br> <code lang="shell">&nbsp; curl -X POST http://localhost:5000/node \\</br>&nbsp;&nbsp; -H 'content-type: application/json' \\</br>&nbsp;&nbsp; -d '{"node": "localhost:5001"}'</code> |
 | ```DELETE /node/<node_url>``` | **Delete a node:** Delete a node from the set of connected nodes. <pre lang="shell">curl -X DELETE http://localhost:5000/node/localhost:5001</pre> |
 | ```GET /nodes``` | **Get all connected nodes:** Fetch a list of all connected nodes. <pre lang="shell">curl -X GET http://localhost:5000/nodes</pre> |
+| ```POST /broadcast-transaction``` | **Broadcast a transaction:** Broadcast a new transaction to other nodes. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** `{"sender": "...", "recipient": "...", "amount": ..., "signature": "..."}`</br></br> <code lang="shell">&nbsp; curl -X POST http://localhost:5001/broadcast-transaction \\</br>&nbsp;&nbsp; -H 'content-type: application/json' \\</br>&nbsp;&nbsp; -d '{</br>&nbsp;&nbsp;&nbsp;&nbsp; "sender": "sender's public key",</br>&nbsp;&nbsp;&nbsp;&nbsp; "recipient": "recipient's public key",</br>&nbsp;&nbsp;&nbsp;&nbsp; "amount": ...,</br>&nbsp;&nbsp;&nbsp;&nbsp; "signature": "signature of transaction"</br>&nbsp;&nbsp; }'</code> |
 
 ## App Snapshot
 

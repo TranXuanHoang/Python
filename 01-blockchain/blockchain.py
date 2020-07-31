@@ -1,4 +1,5 @@
 import json
+import requests
 
 from block import Block
 from transaction import Transaction
@@ -41,7 +42,7 @@ class Blockchain:
 
     @property
     def chain(self):
-        """ Return a copy of the list of blocks. Should only
+        """ Returns a copy of the list of blocks. Should only
         use outside of the `Blockchain` class. """
         return self.__chain[:]
 
@@ -50,11 +51,11 @@ class Blockchain:
         self.__chain = val
 
     def get_open_transactions(self):
-        """ Return a copy of the list of open transactions. """
+        """ Returns a copy of the list of open transactions. """
         return self.__open_transactions[:]
 
     def load_data(self):
-        """ Load and populate app data from file in hard disk. """
+        """ Loads and populates app data from file in hard disk. """
         try:
             with open(f'blockchain-{self.node_id}.txt', mode='r') as f:
                 file_content = f.readlines()
@@ -90,7 +91,7 @@ class Blockchain:
             print('Clean up.')
 
     def save_data(self):
-        """ Save current app data into a file that will persist in the hard disk.
+        """ Saves current app data into a file that will persist in the hard disk.
 
         The data is saved in the form of separate line of JSONs
         """
@@ -119,7 +120,7 @@ class Blockchain:
             print('Saving app data failed.')
 
     def proof_of_work(self):
-        """ Find a 'proof-of-work' number for a newly being mined block.
+        """ Finds a 'proof-of-work' number for a newly being mined block.
 
         A 'proof-of-work' makes the hash of
         current open transactions,
@@ -140,20 +141,26 @@ class Blockchain:
             proof += 1
         return proof
 
-    def get_balance(self, participant=None):
-        """ Calculate the current account balance the :participant: has.
+    def get_balance(self, sender=None):
+        """ Calculates the current account balance the `sender` has.
 
         Arguments:
-            participant (default `None`): The account for which balance is calculated.
-                If the passed-in value is `None` the method will calculate the account
-                balance for the `self.public_key`.
+            sender (`str`, default to `None`): The account (public key) for which balance is calculated.
+                If the passed-in value is `None` the method will calculate the account balance
+                of the `self.public_key` node.
 
-        Returns: None if the `public_key` (the `public_key` is also the wallet's `public key`) is None.
-            Otherwise return the result of substracting the total amount sent from the total amount received.
+        Returns:
+            `None` if the `sender` argument is `None` and `public_key` (the `public_key`
+                is also the wallet's `public key`) is `None`.
+            Otherwise return the result of substracting the total amount sent from the
+                total amount received.
         """
-        if self.public_key == None:
-            return None
-        participant = self.public_key if participant is None else participant
+        if sender == None:
+            if self.public_key == None:
+                return None
+            participant = self.public_key
+        else:
+            participant = sender
         # Amounts sent in the past (already mined and put in blockchain blocks)
         tx_sender = [[tx.amount for tx in block.transactions if tx.sender ==
                       participant] for block in self.__chain]
@@ -171,20 +178,22 @@ class Blockchain:
         return sum([el for row in tx_recipient for el in row]) - sum([el for row in tx_sender for el in row])
 
     def get_last_blockchain_value(self):
-        """ Get the last block value from the blockchain. """
+        """ Gets the last block value from the blockchain. """
         if len(self.__chain) < 1:
             return None
         return self.__chain[-1]
 
-    def add_transaction(self, sender, recipient, signature, amount=1.0):
-        """ Append a new transaction value as well as the last blockchain value
+    def add_transaction(self, sender, recipient, signature, amount=1.0, is_receiving=False):
+        """ Appends a new transaction value as well as the last blockchain value
             to the blockchain.
 
         Arguments:
-            :sender: The sender of the coins.
-            :recipient: The recipient of the coins.
-            :signature: The signature of the transaction.
-            :amount: The amount of coins sent with the transaction (default = 1.0)
+            sender (`str`): The sender of the coins.
+            recipient (`str`): The recipient of the coins.
+            signature (`str`): The signature of the transaction.
+            amount (`float` default = 1.0): The amount of coins sent with the transaction.
+            is_receiving (`bool`): Flag indicating whether the transaction to be added
+                is received from broadcast.
 
         Returns:
             True if the transaction was add successfully, False otherwise.
@@ -195,11 +204,22 @@ class Blockchain:
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
             self.save_data()
+            if not is_receiving:
+                for node in self.__peer_nodes:
+                    url = f'http://{node}/broadcast-transaction'
+                    try:
+                        response = requests.post(
+                            url, json=transaction.__dict__)
+                        if response.status_code == 400 or response.status_code == 500:
+                            print('Transaction declined, needs resolving')
+                            return False
+                    except requests.exceptions.ConnectionError:
+                        continue
             return True
         return False
 
     def mine_block(self):
-        """ Put all open transactions into a new block then chain that block into the blockchain.
+        """ Puts all open transactions into a new block then chains that block into the blockchain.
 
         Returns:
             The :obj:`Block` mined if the whole process of mining block was successful, None otherwise.
