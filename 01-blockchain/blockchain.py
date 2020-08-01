@@ -198,8 +198,8 @@ class Blockchain:
         Returns:
             True if the transaction was add successfully, False otherwise.
         """
-        if self.public_key == None:
-            return False
+        # if self.public_key == None:
+        #     return False
         transaction = Transaction(sender, recipient, signature, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.__open_transactions.append(transaction)
@@ -242,7 +242,56 @@ class Blockchain:
         self.__chain.append(block)
         self.__open_transactions = []
         self.save_data()
+        # Broadcasting the newly added block to other nodes
+        for node in self.__peer_nodes:
+            url = f'http://{node}/broadcast-block'
+            converted_block = block.__dict__.copy()
+            converted_block['transactions'] = [
+                tx.__dict__ for tx in converted_block['transactions']]
+            try:
+                response = requests.post(url, json={'block': converted_block})
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, needs resolving.')
+            except requests.exceptions.ConnectionError:
+                continue
         return block
+
+    def add_block(self, block):
+        """ Adds a new block received from block broadcasting to the blockchain.
+
+        Arguments:
+            block (`dict`): The JSON format block to be added.
+
+        Returns:
+            True if adding the block succeeds, False otherwise.
+        """
+        transactions = [Transaction(
+            tx['sender'], tx['recipient'], tx['signature'], tx['amount'])
+            for tx in block['transactions']]
+        # Note that we exclude the last transaction (which is the MINING reward)
+        # when verify the proof-of-work
+        proof_is_valid = Verification.valid_proof(
+            transactions[:-1], block['previous_hash'], block['proof'])
+        hashes_match = hash_block(self.chain[-1]) == block['previous_hash']
+        if not proof_is_valid or not hashes_match:
+            return False
+        converted_block = Block(
+            block['index'], block['previous_hash'], transactions, block['proof'], block['timestamp'])
+        self.__chain.append(converted_block)
+        # Update open transactions on the peer node when a new broadcast block is added
+        stored_transactions = self.__open_transactions[:]
+        for itx in block['transactions']:
+            for opentx in stored_transactions:
+                if (opentx.sender == itx['sender'] and
+                    opentx.recipient == itx['recipient'] and
+                    opentx.amount == itx['amount'] and
+                        opentx.signature == itx['signature']):
+                    try:
+                        self.__open_transactions.remove(opentx)
+                    except ValueError:
+                        print('Transaction was already removed.')
+        self.save_data()
+        return True
 
     def add_peer_node(self, node):
         """ Adds a new node to the peer node set.
