@@ -24,6 +24,8 @@ class Blockchain:
             is connecting to the node owning this blockchain.
         node_id (`int`): The id of the node hosting the app
             (equal to the `port` argument passed in when starting the app).
+        resolve_conflicts (`bool`): False meams there is no need to resolve blockchain
+            conflicts. True means vice versa.
     """
 
     def __init__(self, public_key, node_id):
@@ -38,6 +40,7 @@ class Blockchain:
         self.public_key = public_key
         self.__peer_nodes = set()
         self.node_id = node_id
+        self.resolve_conflicts = False
         self.load_data()
 
     @property
@@ -252,6 +255,8 @@ class Blockchain:
                 response = requests.post(url, json={'block': converted_block})
                 if response.status_code == 400 or response.status_code == 500:
                     print('Block declined, needs resolving.')
+                if response.status_code == 409:
+                    self.resolve_conflicts = True
             except requests.exceptions.ConnectionError:
                 continue
         return block
@@ -292,6 +297,47 @@ class Blockchain:
                         print('Transaction was already removed.')
         self.save_data()
         return True
+
+    def resolve(self):
+        """ Resolves conflicts of blockchains among the node owning this blockchain and
+        its other peer nodes. This is also called making `consensus` between nodes.
+
+        The rule for resolving conflicts is:
+            (1) Letting the longest valid blockchain win by replacing the current blockchain
+            with that winner one.
+        """
+        winner_chain = self.chain
+        replace = False
+        for node in self.__peer_nodes:
+            url = f'http://{node}/chain'
+            try:
+                response = requests.get(url)
+                node_chain = response.json()
+                node_chain = [Block(
+                    block['index'],
+                    block['previous_hash'],
+                    [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount'])
+                     for tx in block['transactions']],
+                    block['proof'],
+                    block['timestamp']) for block in node_chain]
+                node_chain_length = len(node_chain)
+                local_chain_length = len(winner_chain)
+                print(f'node_chain_length: {node_chain_length}')
+                print(f'local_chain_length: {local_chain_length}')
+                if node_chain_length > local_chain_length and Verification.verify_chain(node_chain):
+                    winner_chain = node_chain
+                    replace = True
+            except requests.exceptions.ConnectionError:
+                print(
+                    'Error while sending request GET /chain to resolve blockchain conflicts...')
+                print(requests.exceptions.ConnectionError.message)
+                continue
+        self.resolve_conflicts = False
+        self.chain = winner_chain
+        if replace:
+            self.__open_transactions = []
+        self.save_data()
+        return replace
 
     def add_peer_node(self, node):
         """ Adds a new node to the peer node set.
