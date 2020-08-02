@@ -48,6 +48,30 @@ The app provides the following APIs:
 | ```POST /broadcast-block``` | **Broadcast a block:** Broadcast a new block to other nodes. </br> **Request Header:** `Content-Type: application/json` </br>**Body:** <code lang="shell">{"block": {"index": ..., "previous_hash": "...", "timestamp": ..., "transactions": [...], "proof": ...}}</code></br></br> <code lang="shell"> curl -X POST 'http://localhost:5001/broadcast-block' -H 'content-type: application/json' -d '{"block": ...}' </code> |
 | ```POST /resolve-conflicts``` | **Resolve blockchain conflicts:** Resolve blockchain conflicts among peer nodes in the nodes network. </br></br> <pre lang="shell"> curl -X POST 'http://localhost:5001/resolve-conflicts' </pre> |
 
+## Run App
+
+This documentation decribes steps to use [Anaconda Individual Edition](https://www.anaconda.com/products/individual) to install packages and run the app on a virtual Python environment.
+
+* Download and [install Anaconda](https://docs.anaconda.com/anaconda/install/), then create a new environemt named like `pycoin` with Anaconda. See [this page](https://docs.anaconda.com/anaconda/navigator/tutorials/manage-environments/) for instructions. Install all required packages described in the [Required Third-Party Packages](#required-third-party-packages) section in the newly created environment using the [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/) which is automatically installed when you install Anaconda.
+
+* Activate the virtual environment (_MacOS_ or _Linux_): Runinng `source activate NAME_OF_ENVIRONMENT` (e.g. `source activate pycoin`) to activate the environment.
+
+* Activate the virtual environment (_Windows_): You can use activate the virtual environment using the Anaconda Navigator GUI. If you, however, want to activate the environment and run the app with Windows's PowerShell, the following commands are your start-to-go (remember to change the values of `USER_NAME` and `NAME_OF_ENVIRONMENT` to yours, and change the `path`s of other environment variables if they differ on your machine. The commands here were tested on a real Windows PC):<pre lang="shell">
+$Env:USER_NAME = "hoang.tran"
+$Env:NAME_OF_ENVIRONMENT = "pycoin"
+$Env:_CONDA_ROOT = "C:/Users/$Env:USER_NAME/Anaconda3"
+$Env:CONDA_EXE = "$Env:_CONDA_ROOT/Scripts/conda.exe"
+$Env:_CONDA_EXE = "$Env:_CONDA_ROOT/Scripts/conda.exe"
+$Env:_CE_M = ""
+$Env:_CE_CONDA = ""
+Import-Module "$Env:_CONDA_ROOT/shell/condabin/Conda.psm1"
+Add-CondaEnvironmentToPrompt
+conda activate "$Env:_CONDA_ROOT" ; conda activate $Env:NAME_OF_ENVIRONMENT
+</pre>
+
+* Start the app: `cd` into the dicretory of the `node.py` file, then run one of the following commands (e.g. `python node.py -p 5001`):<pre>`python node.py`<br>`python node.py -p port_num`<br>`python node.py --port port_num`</pre>
+Then open browser and load `localhost:5000` for the app started with `python node.py` or load `localhost:port_num` for the app started with `python node.py [-p|--port] port_num`
+
 ## App Snapshot
 
 <p align="center">

@@ -15,16 +15,16 @@ class Blockchain:
     """ Represents the underlying blockchain.
 
     Attributes:
-        chain (:obj:`list` of `Block`): A list of `Block`s chained together to form
+        chain (`list` of `Block`): A list of `Block`s chained together to form
             the blockchain.
-        __open_transactions (:obj:`list` of `Transaction`): A list of open `Transaction`s.
+        __open_transactions (`list` of `Transaction`): A list of open `Transaction`s.
         public_key (`str`): The public key assigined to the `wallet` of the node
             owning this blockchain.
-        __peer_nodes (:obj:`set` of `str`): :obj:`set` of `node URL`s of `Node`s that
+        __peer_nodes (`set` of `str`): `set` of `node URL`s of `Node`s that
             is connecting to the node owning this blockchain.
         node_id (`int`): The id of the node hosting the app
             (equal to the `port` argument passed in when starting the app).
-        resolve_conflicts (`bool`): False meams there is no need to resolve blockchain
+        resolve_conflicts (`bool`): False means there is no need to resolve blockchain
             conflicts. True means vice versa.
     """
 
@@ -225,7 +225,7 @@ class Blockchain:
         """ Puts all open transactions into a new block then chains that block into the blockchain.
 
         Returns:
-            The :obj:`Block` mined if the whole process of mining block was successful, None otherwise.
+            The `Block` mined if the whole process of mining block was successful, None otherwise.
         """
         if self.public_key == None:
             return None
@@ -322,8 +322,6 @@ class Blockchain:
                     block['timestamp']) for block in node_chain]
                 node_chain_length = len(node_chain)
                 local_chain_length = len(winner_chain)
-                print(f'node_chain_length: {node_chain_length}')
-                print(f'local_chain_length: {local_chain_length}')
                 if node_chain_length > local_chain_length and Verification.verify_chain(node_chain):
                     winner_chain = node_chain
                     replace = True
