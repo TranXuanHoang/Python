@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "01-blockchain"
+		},
+		{
+			"path": "02-todos"
 		}
 	],
 	"settings": {}
